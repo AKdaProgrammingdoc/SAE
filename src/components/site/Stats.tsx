@@ -1,4 +1,4 @@
-import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
+import { motion, useInView, useMotionValue, useTransform, animate, useScroll, useSpring } from "framer-motion";
 import { useEffect, useRef } from "react";
 import { Award, Users, Star, Package } from "lucide-react";
 import { useTilt } from "@/hooks/use-tilt";
@@ -8,14 +8,12 @@ function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   const inView = useInView(ref, { once: true, margin: "-50px" });
   const count = useMotionValue(0);
   const rounded = useTransform(count, (v) => `${Math.round(v * 10) / 10}${suffix}`);
-
   useEffect(() => {
     if (inView) {
       const controls = animate(count, to, { duration: 2.2, ease: [0.22, 1, 0.36, 1] });
       return controls.stop;
     }
   }, [inView, to, count]);
-
   return <motion.span ref={ref}>{rounded}</motion.span>;
 }
 
@@ -27,20 +25,28 @@ const stats = [
 ];
 
 function StatCard({ s, i }: { s: typeof stats[0]; i: number }) {
-  const { rotateX, rotateY, scale, glowOpacity, handleMouseMove, handleMouseLeave } = useTilt(10);
+  const { rotateX: tiltX, rotateY: tiltY, scale, glowOpacity, handleMouseMove, handleMouseLeave } = useTilt(10);
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
+  const scrollRotateX = useSpring(useTransform(scrollYProgress, [0, 1], [40, 0]), { stiffness: 80, damping: 20 });
+  const cardY = useSpring(useTransform(scrollYProgress, [0, 1], [60, 0]), { stiffness: 80, damping: 20 });
+  const cardOpacity = useTransform(scrollYProgress, [0, 0.5], [0, 1]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: i * 0.1 }}
-      style={{ perspective: 700 }}
+      ref={ref}
+      style={{ perspective: 700, opacity: cardOpacity, y: cardY }}
+      className="flex flex-col items-center"
     >
       <motion.div
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        style={{ rotateX, rotateY, scale, transformStyle: "preserve-3d" }}
+        style={{
+          rotateX: useTransform([scrollRotateX, tiltX], ([s, h]) => (s as number) + (h as number)),
+          rotateY: tiltY,
+          scale,
+          transformStyle: "preserve-3d",
+        }}
         className="flex flex-col items-center text-center group cursor-default rounded-xl p-4 relative"
       >
         <motion.div style={{ opacity: glowOpacity }} className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-white/5 via-transparent to-transparent" />
@@ -54,9 +60,7 @@ function StatCard({ s, i }: { s: typeof stats[0]; i: number }) {
         <div className="font-display text-4xl lg:text-5xl font-bold text-foreground">
           <Counter to={s.value} suffix={s.suffix} />
         </div>
-        <div className="mt-2 text-xs sm:text-sm uppercase tracking-widest text-muted-foreground">
-          {s.label}
-        </div>
+        <div className="mt-2 text-xs sm:text-sm uppercase tracking-widest text-muted-foreground">{s.label}</div>
       </motion.div>
     </motion.div>
   );

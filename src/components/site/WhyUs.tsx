@@ -1,6 +1,7 @@
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { ShieldCheck, Search, Tag, Clock } from "lucide-react";
 import { useTilt } from "@/hooks/use-tilt";
+import { useRef } from "react";
 
 const features = [
   { icon: ShieldCheck, title: "Original Parts Guaranteed", desc: "100% authentic spares sourced directly from trusted manufacturers." },
@@ -11,19 +12,26 @@ const features = [
 
 function WhyUsCard({ f, i }: { f: typeof features[0]; i: number }) {
   const { rotateX, rotateY, scale, glowOpacity, handleMouseMove, handleMouseLeave } = useTilt(10);
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "center center"] });
+  const cardRotateX = useSpring(useTransform(scrollYProgress, [0, 1], [30, 0]), { stiffness: 80, damping: 20 });
+  const cardY = useSpring(useTransform(scrollYProgress, [0, 1], [80, 0]), { stiffness: 80, damping: 20 });
+  const cardOpacity = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40, scale: 0.95 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      style={{ perspective: 800 }}
+      ref={ref}
+      style={{ perspective: 900, opacity: cardOpacity, y: cardY }}
     >
       <motion.div
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        style={{ rotateX, rotateY, scale, transformStyle: "preserve-3d" }}
+        style={{
+          rotateX: useTransform([cardRotateX, rotateX], ([s, h]) => (s as number) + (h as number)),
+          rotateY,
+          scale,
+          transformStyle: "preserve-3d",
+        }}
         className="card-hover-glow group bg-card border border-border rounded-xl p-7 relative overflow-hidden cursor-default h-full"
       >
         <motion.div style={{ opacity: glowOpacity }} className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-white/8 via-transparent to-transparent" />
@@ -44,16 +52,15 @@ function WhyUsCard({ f, i }: { f: typeof features[0]; i: number }) {
 }
 
 export function WhyUs() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "start center"] });
+  const titleY = useSpring(useTransform(scrollYProgress, [0, 1], [60, 0]), { stiffness: 80, damping: 20 });
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.6], [0, 1]);
+
   return (
     <section id="about" className="relative py-24 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-2xl mx-auto mb-16"
-        >
+        <motion.div style={{ y: titleY, opacity: titleOpacity }} className="text-center max-w-2xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-semibold uppercase tracking-widest mb-4">
             Why Choose Us
           </div>
@@ -61,7 +68,7 @@ export function WhyUs() {
             Built on <span className="text-gradient-red">Trust</span>
           </h2>
         </motion.div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div ref={sectionRef} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((f, i) => <WhyUsCard key={f.title} f={f} i={i} />)}
         </div>
       </div>

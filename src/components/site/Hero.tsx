@@ -1,17 +1,14 @@
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
-import { useRef } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowRight, MessageCircle } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import bike from "@/assets/bike.png";
 import { GridBackground } from "./GridBackground";
+import { useHeroScroll } from "@/hooks/use-scroll-3d";
 
 export function Hero() {
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const bgY = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 24]);
+  const { ref, bikeRotateY, bikeScale, bikeZ, textY, textOpacity, bgY } = useHeroScroll();
 
-  // Bike tilt on mouse move
+  // Mouse tilt on bike
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
   const rotX = useSpring(useTransform(my, [-0.5, 0.5], [8, -8]), { stiffness: 80, damping: 12 });
@@ -25,30 +22,19 @@ export function Hero() {
   const reset = () => { mx.set(0); my.set(0); };
 
   return (
-    <section
-      ref={ref}
-      id="home"
-      className="relative min-h-screen flex items-center overflow-hidden pt-20"
-    >
+    <section ref={ref} id="home" className="relative min-h-screen flex items-center overflow-hidden pt-20">
+      {/* Parallax BG */}
       <motion.div style={{ y: bgY }} className="absolute inset-0 z-0">
-        <img
-          src={heroBg}
-          alt="Motorcycle engine close-up"
-          width={1920}
-          height={1088}
-          className="w-full h-[120%] object-cover opacity-40"
-        />
+        <img src={heroBg} alt="Motorcycle engine" className="w-full h-[120%] object-cover opacity-40" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50" />
       </motion.div>
 
       <GridBackground />
 
-      <motion.div
-        style={{ y: contentY }}
-        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center w-full py-12"
-      >
-        <div>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center w-full py-12">
+        {/* Text — fades and slides up on scroll */}
+        <motion.div style={{ y: textY, opacity: textOpacity }}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,11 +49,11 @@ export function Hero() {
             {["Madurai's", "Trusted Bike", "Spare Parts Shop"].map((line, i) => (
               <motion.span
                 key={i}
-                initial={{ opacity: 0, y: 40, rotateX: -40 }}
+                initial={{ opacity: 0, y: 60, rotateX: -40 }}
                 animate={{ opacity: 1, y: 0, rotateX: 0 }}
-                transition={{ duration: 0.7, delay: 0.1 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.8, delay: 0.1 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
                 className={`block ${i === 1 ? "text-gradient-red" : ""}`}
-                style={{ transformOrigin: "bottom" }}
+                style={{ transformOrigin: "bottom", display: "block" }}
               >
                 {line}
               </motion.span>
@@ -108,8 +94,9 @@ export function Hero() {
               WhatsApp Us
             </a>
           </motion.div>
-        </div>
+        </motion.div>
 
+        {/* Bike — rotates in 3D as you scroll down */}
         <motion.div
           initial={{ opacity: 0, x: 60 }}
           animate={{ opacity: 1, x: 0 }}
@@ -127,12 +114,15 @@ export function Hero() {
           <motion.img
             src={bike}
             alt="Motorcycle"
-            width={1280}
-            height={768}
-            style={{ rotateX: rotX, rotateY: rotY, transformStyle: "preserve-3d" }}
+            style={{
+              rotateX: rotX,
+              rotateY: useTransform(bikeRotateY, (scroll) => scroll + rotY.get()),
+              scale: bikeScale,
+              z: bikeZ,
+              transformStyle: "preserve-3d",
+            }}
             className="relative w-full h-auto animate-[float_4s_ease-in-out_infinite] drop-shadow-[0_30px_40px_rgba(204,0,0,0.4)] will-change-transform"
           />
-          {/* Speed lines */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 0.6, 0], x: [-40, 40] }}
@@ -146,7 +136,7 @@ export function Hero() {
             className="absolute top-[60%] -left-6 w-16 h-0.5 bg-gradient-to-r from-transparent to-primary/70"
           />
         </motion.div>
-      </motion.div>
+      </div>
 
       <motion.div
         initial={{ opacity: 0 }}
