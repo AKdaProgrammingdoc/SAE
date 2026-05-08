@@ -7,7 +7,10 @@ function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-50px" });
   const count = useMotionValue(0);
-  const rounded = useTransform(count, (v) => `${Math.round(v * 10) / 10}${suffix}`);
+  const rounded = useTransform(count, (v) => {
+    if (to >= 100000) return `${Math.round(v / 1000) / 100}L${suffix}`;
+    return `${Math.round(v * 10) / 10}${suffix}`;
+  });
   useEffect(() => {
     if (inView) {
       const controls = animate(count, to, { duration: 2.2, ease: [0.22, 1, 0.36, 1] });
@@ -19,8 +22,8 @@ function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
 
 const stats = [
   { icon: Award, value: 20, suffix: "+", label: "Years Experience" },
-  { icon: Users, value: 32, suffix: "+", label: "Happy Customers" },
-  { icon: Star, value: 3.6, suffix: "★", label: "Google Rating" },
+  { icon: Users, value: 100000, suffix: "+", label: "Happy Customers" },
+  { icon: Star, value: 4.0, suffix: "★", label: "Google Rating" },
   { icon: Package, value: 1000, suffix: "+", label: "Parts Available" },
 ];
 
