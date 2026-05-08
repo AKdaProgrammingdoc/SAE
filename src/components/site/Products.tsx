@@ -2,10 +2,19 @@ import { motion } from "framer-motion";
 import { CheckCircle2, Cog, MessageCircle, ShieldCheck } from "lucide-react";
 import { useTilt } from "@/hooks/use-tilt";
 
-const spareParts = [
-  "Bike Front Light", "Bike Back Light", "Bike Bearing", "Bike Brakes",
-  "Bike Handle", "Brake Oil", "Disc Brake", "Two Wheeler Accessories",
-  "Cable Lock", "Engine Oil", "Motorcycle Brake Shoes", "Tires",
+const spareParts: { name: string; waMessage: string }[] = [
+  { name: "Bike Front Light", waMessage: "Hi, I want to order: Bike Front Light for Hero/Honda bike" },
+  { name: "Bike Back Light", waMessage: "Hi, I want to order: Bike Back Light for Hero/Honda bike" },
+  { name: "Bike Bearing", waMessage: "Hi, I want to order: Bike Bearing for Hero/Honda bike" },
+  { name: "Bike Brakes", waMessage: "Hi, I want to order: Bike Brakes for Hero/Honda bike" },
+  { name: "Bike Handle", waMessage: "Hi, I want to order: Bike Handle for Hero/Honda bike" },
+  { name: "Brake Oil", waMessage: "Hi, I want to order: Brake Oil for Hero/Honda bike" },
+  { name: "Disc Brake", waMessage: "Hi, I want to order: Disc Brake for Hero/Honda bike" },
+  { name: "Two Wheeler Accessories", waMessage: "Hi, I want to order: Two Wheeler Accessories for Hero/Honda bike" },
+  { name: "Cable Lock", waMessage: "Hi, I want to order: Cable Lock for Hero/Honda bike" },
+  { name: "Engine Oil", waMessage: "Hi, I want to order Engine Oil.\nEngine Oil Brand: \nEngine Oil Grade (e.g. 10W30, 20W40): \nBike Model: " },
+  { name: "Motorcycle Brake Shoes", waMessage: "Hi, I want to order: Motorcycle Brake Shoes for Hero/Honda bike" },
+  { name: "Tyres", waMessage: "Hi, I want to order Tyres.\nTyre Company: \nTyre Size (e.g. 2.75-17, 90/90-17): \nTyre Type (Tube / Tubeless): " },
 ];
 
 const brands = ["Hero", "Honda"];
@@ -100,7 +109,7 @@ export function Products() {
               {spareParts.map((part, index) => (
                 <motion.a
                   key={part}
-                  href={`https://wa.me/919842183444?text=${encodeURIComponent(`Hi, I want to order: ${part} for Hero/Honda bike`)}`}
+                  href={`https://wa.me/919842183444?text=${encodeURIComponent(part.waMessage)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   initial={{ opacity: 0, y: 18 }}
@@ -112,7 +121,7 @@ export function Products() {
                 >
                   <span className="flex items-center gap-2 text-sm sm:text-base font-semibold text-foreground">
                     <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                    {part}
+                    {part.name}
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-primary opacity-80 group-hover:opacity-100 shrink-0">
                     Order
